@@ -1,8 +1,7 @@
-from django.contrib import admin
 from django.urls import path
-import views
+from . import views
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    
+    path("", views.index, name="home"),
+    path("<str:room_id>/", views.room, name="room"),
 ]

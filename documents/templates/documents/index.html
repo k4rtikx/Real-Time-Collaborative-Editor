@@ -1,0 +1,32 @@
+<form method="POST">
+    {% csrf_token %}
+
+    <textarea id="editor" name="content" rows="20" cols="100">{{ document.content }}</textarea>
+
+    <br><br>
+
+    <button type="submit">
+        Save
+    </button>
+    <script>
+        const socket = new WebSocket(
+            "ws://" + window.location.host + "/ws/editor/"
+        );
+
+        const editor = document.getElementById("editor");
+
+        editor.addEventListener("keyup", function () {
+            socket.send(editor.value);
+        });
+
+        socket.onmessage = function (event) {
+
+            editor.value = event.data;
+
+        };
+
+        socket.onopen = function () {
+            console.log("WebSocket Connected");
+        };
+    </script>
+</form>
