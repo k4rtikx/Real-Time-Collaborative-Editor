@@ -1,32 +1,115 @@
-<form method="POST">
-    {% csrf_token %}
+<!DOCTYPE html>
+<html lang="en">
 
-    <textarea id="editor" name="content" rows="20" cols="100">{{ document.content }}</textarea>
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Text Editor</title>
 
-    <br><br>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
 
-    <button type="submit">
-        Save
-    </button>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #editor {
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Room: {{ group_name }}</h2>
+    <h3>
+        Users Online:
+        <span id="online-count">0</span>
+    </h3>
+
+    <div id="editor"></div>
+
+    {{ group_name|json_script:"group-name" }}
+    {{ docs_json|json_script:"doc-data" }}
+
     <script>
-        const socket = new WebSocket(
-            "ws://" + window.location.host + "/ws/editor/"
+
+        const groupName = JSON.parse(
+            document.getElementById("group-name").textContent
         );
 
-        const editor = document.getElementById("editor");
+        const docData = JSON.parse(
+            document.getElementById("doc-data").textContent
+        );
 
-        editor.addEventListener("keyup", function () {
-            socket.send(editor.value);
+        const quill = new Quill("#editor", {
+            theme: "snow",
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    ["bold", "italic", "underline"],
+                    [{ list: "ordered" }, { list: "bullet" }],
+                    ["clean"]
+                ]
+            }
         });
 
-        socket.onmessage = function (event) {
+        if (docData.content) {
+            quill.clipboard.dangerouslyPasteHTML(
+                docData.content
+            );
+        }
 
-            editor.value = event.data;
-
-        };
+        const socket = new WebSocket(
+            "ws://" +
+            window.location.host +
+            "/ws/editor/" +
+            groupName +
+            "/"
+        );
 
         socket.onopen = function () {
             console.log("WebSocket Connected");
         };
+
+        quill.on("text-change", function (delta, oldDelta, source) {
+
+            if (source === "user") {
+
+                socket.send(
+                    quill.root.innerHTML
+                );
+
+            }
+
+        });
+
+        socket.onmessage = function (event) {
+
+            const data = JSON.parse(event.data);
+
+            if (data.type === "count") {
+
+                document.getElementById(
+                    "online-count"
+                ).innerText = data.count;
+
+            }
+
+            else if (data.type === "editor") {
+
+                if (data.message !== quill.root.innerHTML) {
+
+                    quill.root.innerHTML = data.message;
+
+                }
+
+            }
+
+        };
     </script>
-</form>
+
+</body>
+
+</html>

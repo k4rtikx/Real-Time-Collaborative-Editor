@@ -23,10 +23,13 @@ def room(request, room_id):
         document.save()
 
     return render(
-        request,
-        "documents/index.html",
-        {
-            "room_id": room_id,
-            "document": document
+    request,
+    "documents/index.html",
+    {
+        "group_name": room_id,
+        "docs_json": {
+            "content": document.content
         }
-    )
+    }
+)
+
