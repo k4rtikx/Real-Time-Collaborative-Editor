@@ -3,7 +3,16 @@ from django.shortcuts import render, redirect
 
 from .models import Group, Document
 import redis,os
-redis_client = redis.Redis(host=os.getenv("REDIS_HOST"), port=6379, db=0, decode_responses=True)
+redis_url = os.getenv("REDIS_URL")
+if redis_url:
+    redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
+else:
+    redis_client = redis.Redis(
+        host=os.getenv("REDIS_HOST", "127.0.0.1"),
+        port=6379,
+        db=0,
+        decode_responses=True
+    )
 
 def home(request):
     return render(request, "documents/home.html")
