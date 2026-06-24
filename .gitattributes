@@ -1,0 +1,9 @@
+# Hide HTML and CSS from GitHub language stats
+# This is a Django/Python project — HTML is just templates, not the primary language
+
+*.html linguist-detectable=false
+*.css  linguist-detectable=false
+
+# Explicitly keep Python and JS visible
+*.py linguist-detectable=true
+*.js linguist-detectable=true
