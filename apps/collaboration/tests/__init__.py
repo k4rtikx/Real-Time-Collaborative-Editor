@@ -1,0 +1,3 @@
+"""
+Collaboration app tests init.
+"""

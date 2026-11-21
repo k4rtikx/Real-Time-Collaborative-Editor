@@ -4,332 +4,1145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room {{ group_name }} — Live Document</title>
-    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <title>Room {{ group_name }} - Live Document</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
     <style>
         :root {
-            --paper: #F6F3EC;
-            --paper-line: #E4DECD;
-            --ink: #1C1F22;
-            --ink-soft: #5B6066;
-            --ink-faint: #9A968A;
-            --coral: #E2543D;
-            --teal: #2C8C82;
-            --card-bg: #FFFEFB;
-            --line: #DCD5C4;
+            --bg: #090519;
+            --ink: #efeaff;
+            --soft: #b3a8e0;
+            --faint: #7d71b0;
+            --v1: #8b5cf6;
+            --v2: #6d4aff;
+            --cy: #22d3ee;
+            --pk: #f472b6;
+            --or: #fb923c;
+            --gl: rgba(34, 22, 80, .58);
+            --ln: rgba(167, 139, 250, .22)
         }
 
         * {
-            box-sizing: border-box;
+            box-sizing: border-box
         }
 
         html,
         body {
             margin: 0;
-            padding: 0;
+            min-height: 100%
         }
 
         body {
-            background-color: var(--paper);
-            background-image: repeating-linear-gradient(to bottom, transparent 0px, transparent 35px, var(--paper-line) 36px);
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
             color: var(--ink);
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased
         }
 
-        .page {
-            max-width: 880px;
-            margin: 0 auto;
-            padding: 36px 24px 60px;
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(900px 600px at 8% 0%, rgba(139, 92, 246, .45), transparent 60%), radial-gradient(800px 600px at 100% 100%, rgba(236, 72, 153, .28), transparent 60%), radial-gradient(700px 500px at 90% 5%, rgba(34, 211, 238, .18), transparent 60%), linear-gradient(160deg, #0d0626, #160a3f 55%, #0a0620)
         }
 
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 24px;
+        a {
+            color: inherit
         }
 
-        .room-label {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 12px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--ink-faint);
-            margin: 0 0 6px;
+        .panel {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .015)), var(--gl);
+            border: 1px solid var(--ln);
+            border-radius: 26px;
+            backdrop-filter: blur(22px) saturate(140%);
+            -webkit-backdrop-filter: blur(22px) saturate(140%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), inset 0 -2px 8px rgba(0, 0, 0, .25), 0 30px 60px -24px rgba(0, 0, 0, .7), 0 0 40px -10px rgba(139, 92, 246, .35)
         }
 
-        h1.room-title {
-            font-family: 'Fraunces', serif;
-            font-weight: 600;
-            font-size: 28px;
-            margin: 0;
-            word-break: break-all;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            border: 0;
+            border-radius: 16px;
+            padding: 13px 20px;
+            cursor: pointer;
+            text-decoration: none;
+            background: linear-gradient(180deg, #9f7bff, #6d4aff 60%, #5a36e6);
+            box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), inset 0 -3px 0 rgba(30, 10, 110, .5), 0 14px 26px -8px rgba(109, 74, 255, .75);
+            transition: transform .12s, box-shadow .12s
         }
 
-        .topbar-right {
+        .btn:hover {
+            transform: translateY(-2px)
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, .4), 0 6px 12px -6px rgba(109, 74, 255, .7)
+        }
+
+        .btn.ghost {
+            background: rgba(255, 255, 255, .06);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 0 0 1px var(--ln)
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--cy);
+            outline-offset: 3px
+        }
+
+        .ic {
+            width: 20px;
+            height: 20px;
+            flex: none
+        }
+
+        .brand {
             display: flex;
             align-items: center;
             gap: 12px;
+            font-weight: 800;
+            font-size: 22px;
+            letter-spacing: -.02em;
+            text-decoration: none
         }
 
-        .presence {
+        .brand svg {
+            width: 40px;
+            height: 40px;
+            filter: drop-shadow(0 6px 10px rgba(139, 92, 246, .6))
+        }
+
+        .av {
+            --s: 40px;
+            width: var(--s);
+            height: var(--s);
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--c, #8b5cf6);
+            background: #2a1c63;
+            box-shadow: 0 6px 14px -4px rgba(0, 0, 0, .6), 0 0 0 3px rgba(12, 6, 34, .85);
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            color: #fff;
+            flex: none
+        }
+
+        .scene {
+            perspective: 1000px;
+            position: relative;
+            display: grid;
+            place-items: center
+        }
+
+        .rig {
+            position: relative;
+            width: 260px;
+            height: 300px;
+            transform-style: preserve-3d;
+            transform: scale(var(--k, 1)) rotateX(var(--rx, 8deg)) rotateY(var(--ry, -18deg));
+            transition: transform .15s ease-out
+        }
+
+        .sheet {
+            position: absolute;
+            inset: 0;
+            border-radius: 28px;
+            background: linear-gradient(145deg, #b79bff, #6d4aff 55%, #4326c9);
+            box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), inset 0 -10px 18px rgba(20, 5, 90, .5), 0 40px 50px -10px rgba(0, 0, 0, .6)
+        }
+
+        .s1 {
+            transform: translateZ(-64px);
+            opacity: .5;
+            filter: hue-rotate(60deg)
+        }
+
+        .s2 {
+            transform: translateZ(-32px);
+            opacity: .8;
+            filter: hue-rotate(25deg)
+        }
+
+        .s3 {
+            padding: 34px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px
+        }
+
+        .s3 i {
+            display: block;
+            height: 13px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .88);
+            box-shadow: 0 2px 0 rgba(20, 5, 90, .3)
+        }
+
+        .s3 i:nth-child(2) {
+            width: 80%
+        }
+
+        .s3 i:nth-child(3) {
+            width: 92%
+        }
+
+        .s3 i:nth-child(4) {
+            width: 58%;
+            background: rgba(103, 232, 249, .9)
+        }
+
+        .orb {
+            position: absolute;
+            transform: translateZ(var(--z, 80px));
+            animation: bob 5s ease-in-out infinite;
+            animation-delay: var(--d, 0s)
+        }
+
+        .orb .av {
+            --s: var(--os, 60px);
+            border-width: 3px;
+            box-shadow: 0 18px 24px -8px rgba(0, 0, 0, .65), 0 0 24px -2px var(--c)
+        }
+
+        .flag {
+            position: absolute;
+            transform: translateZ(110px);
+            padding: 5px 12px;
+            border-radius: 9px 9px 9px 2px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #160a3f;
+            box-shadow: 0 10px 18px -6px rgba(0, 0, 0, .5);
+            animation: bob 6s ease-in-out infinite
+        }
+
+        .ptr {
+            position: absolute;
+            transform: translateZ(100px);
+            width: 44px;
+            filter: drop-shadow(0 10px 8px rgba(0, 0, 0, .5))
+        }
+
+        @keyframes bob {
+            50% {
+                translate: 0 -10px
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                animation: none !important;
+                transition: none !important
+            }
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden
+        }
+
+        .app {
+            height: 100vh;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 250px minmax(0, 1fr) 320px;
+            grid-template-rows: auto minmax(0, 1fr);
+            grid-template-areas: "side top top" "side main right";
+            gap: 16px
+        }
+
+        .side {
+            grid-area: side;
+            padding: 22px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            min-height: 0
+        }
+
+        .side .brand {
+            padding: 0 8px 6px
+        }
+
+        .nav {
             display: flex;
             align-items: center;
-            gap: 7px;
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 12.5px;
-            color: var(--ink-soft);
-            background: var(--card-bg);
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            padding: 7px 14px;
-        }
-
-        .presence .dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--teal);
-            box-shadow: 0 0 0 0 rgba(44, 140, 130, 0.5);
-            animation: pulse 2.2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(44, 140, 130, 0.45);
-            }
-
-            70% {
-                box-shadow: 0 0 0 6px rgba(44, 140, 130, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(44, 140, 130, 0);
-            }
-        }
-
-        #copyLinkBtn {
-            font-family: 'Inter', sans-serif;
+            gap: 14px;
+            padding: 13px 16px;
+            border-radius: 16px;
+            color: var(--soft);
+            text-decoration: none;
             font-weight: 600;
+            transition: background .15s
+        }
+
+        .nav:hover {
+            background: rgba(255, 255, 255, .06)
+        }
+
+        .nav.on {
+            color: #fff;
+            background: linear-gradient(180deg, rgba(139, 92, 246, .6), rgba(109, 74, 255, .3));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28), 0 8px 20px -8px rgba(109, 74, 255, .7)
+        }
+
+        .side .btn {
+            width: 100%;
+            padding: 15px
+        }
+
+        .promo {
+            margin-top: auto;
+            text-align: center;
+            min-height: 0
+        }
+
+        .promo .scene {
+            height: 175px;
+            margin-bottom: 4px
+        }
+
+        .scene.sm .rig {
+            margin: -62px -50px
+        }
+
+        .ql-snow.ql-toolbar button svg {
+            width: 20px;
+            height: 20px
+        }
+
+        .promo h3 {
+            margin: 0 0 6px;
+            font-size: 21px;
+            line-height: 1.2;
+            letter-spacing: -.01em
+        }
+
+        .promo p {
+            margin: 0;
             font-size: 13px;
+            color: var(--soft);
+            line-height: 1.5
+        }
+
+        .top {
+            grid-area: top;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 18px
+        }
+
+        .top .doc {
+            color: var(--soft)
+        }
+
+        #title {
             background: transparent;
+            border: 0;
             color: var(--ink);
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            padding: 8px 16px;
+            font: 800 19px 'Plus Jakarta Sans', sans-serif;
+            min-width: 80px;
+            padding: 6px 4px;
+            border-radius: 8px
+        }
+
+        #title:focus {
+            outline: 2px solid var(--v1)
+        }
+
+        .ib {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid var(--ln);
+            background: rgba(255, 255, 255, .05);
+            color: var(--soft);
+            display: grid;
+            place-items: center;
             cursor: pointer;
-            transition: border-color 0.15s ease, color 0.15s ease;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
+            transition: transform .12s, color .12s
         }
 
-        #copyLinkBtn:hover {
-            border-color: var(--ink);
+        .ib:hover {
+            color: #fff;
+            transform: translateY(-1px)
         }
 
-        #copyLinkBtn.copied {
-            border-color: var(--teal);
-            color: var(--teal);
+        .ib.sm {
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
+            border: 0;
+            background: transparent
         }
 
-        .editor-card {
-            background: var(--card-bg);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 2px rgba(28, 31, 34, 0.04);
+        .ib.on {
+            color: #fbbf24
         }
 
-        /* --- Quill overrides: quiet, paper-toned toolbar --- */
-        .ql-toolbar.ql-snow {
-            border: none;
-            border-bottom: 1px solid var(--line);
-            background: #FBFAF6;
-            padding: 10px 14px;
+        .ib.on .ic {
+            fill: #fbbf24
         }
 
-        .ql-container.ql-snow {
-            border: none;
-            font-family: 'Inter', sans-serif;
-            font-size: 15.5px;
+        .live {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            padding: 7px 14px;
+            border-radius: 99px;
+            background: rgba(34, 211, 238, .12);
+            border: 1px solid rgba(34, 211, 238, .4);
+            color: #7ff0ff;
+            font-weight: 700;
+            font-size: 13px
         }
 
-        #editor {
-            height: 480px;
-            background: var(--card-bg);
-            color: var(--ink);
-            line-height: 1.65;
+        .live b {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 0 0 rgba(52, 211, 153, .6);
+            animation: pl 2s infinite
+        }
+
+        @keyframes pl {
+            70% {
+                box-shadow: 0 0 0 7px rgba(52, 211, 153, 0)
+            }
+        }
+
+        .sp {
+            flex: 1
+        }
+
+        .stack {
+            display: flex;
+            align-items: center
+        }
+
+        .stack>*+* {
+            margin-left: -12px
+        }
+
+        .more {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 13px;
+            background: #2a1c63;
+            border: 2px solid var(--ln);
+            box-shadow: 0 0 0 3px rgba(12, 6, 34, .85)
+        }
+
+        .me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--soft)
+        }
+
+        .main {
+            grid-area: main;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden
+        }
+
+        .wrap {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            padding: 22px
+        }
+
+        #toolbar.ql-toolbar.ql-snow {
+            border: 0;
+            border-bottom: 1px solid var(--ln);
+            background: rgba(255, 255, 255, .03);
+            padding: 14px 18px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 0
+        }
+
+        .ql-snow .ql-formats {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            margin: 0 10px 0 0;
+            padding-right: 12px;
+            border-right: 1px solid var(--ln)
+        }
+
+        .ql-snow .ql-formats:last-child {
+            border: 0
+        }
+
+        .ql-snow.ql-toolbar button {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            color: var(--soft);
+            display: grid;
+            place-items: center;
+            padding: 0
+        }
+
+        .ql-snow.ql-toolbar button:hover,
+        .ql-snow.ql-toolbar button.ql-active {
+            background: rgba(139, 92, 246, .35);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2)
         }
 
         .ql-snow .ql-stroke {
-            stroke: var(--ink-soft);
+            stroke: #cfc6f5
         }
 
-        .ql-snow .ql-fill {
-            fill: var(--ink-soft);
+        .ql-snow .ql-fill,
+        .ql-snow .ql-stroke.ql-fill {
+            fill: #cfc6f5
+        }
+
+        .ql-snow.ql-toolbar button:hover .ql-stroke,
+        .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+            stroke: #fff
+        }
+
+        .ql-snow.ql-toolbar button:hover .ql-fill,
+        .ql-snow.ql-toolbar button.ql-active .ql-fill {
+            fill: #fff
         }
 
         .ql-snow .ql-picker {
-            color: var(--ink-soft);
+            color: #cfc6f5;
+            font-weight: 600
         }
 
-        .ql-toolbar.ql-snow .ql-formats button:hover .ql-stroke,
-        .ql-toolbar.ql-snow .ql-formats button.ql-active .ql-stroke {
-            stroke: var(--coral);
+        .ql-snow .ql-picker-label {
+            border-radius: 11px;
+            padding-left: 10px
         }
 
-        .ql-toolbar.ql-snow .ql-formats button:hover .ql-fill,
-        .ql-toolbar.ql-snow .ql-formats button.ql-active .ql-fill {
-            fill: var(--coral);
+        .ql-snow .ql-picker.ql-expanded .ql-picker-label {
+            border-color: var(--ln) !important;
+            color: #fff;
+            background: rgba(139, 92, 246, .3)
         }
 
-        .ql-toolbar.ql-snow .ql-formats button.ql-active,
-        .ql-toolbar.ql-snow .ql-formats button:hover {
-            color: var(--coral);
+        .ql-snow .ql-picker-options {
+            background: #1d1347;
+            border: 1px solid var(--ln) !important;
+            border-radius: 14px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .6)
+        }
+
+        .ql-snow .ql-picker-item:hover {
+            color: #fff
+        }
+
+        .ql-snow .ql-tooltip {
+            background: #1d1347;
+            color: var(--ink);
+            border: 1px solid var(--ln);
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .6);
+            z-index: 5
+        }
+
+        .ql-snow .ql-tooltip input[type=text] {
+            background: #0f0830;
+            color: #fff;
+            border: 1px solid var(--ln);
+            border-radius: 8px;
+            padding: 4px 8px
+        }
+
+        .ql-snow .ql-tooltip a.ql-action,
+        .ql-snow .ql-tooltip a.ql-remove,
+        .ql-snow .ql-tooltip a {
+            color: var(--cy)
+        }
+
+        .ql-container.ql-snow {
+            border: 0;
+            height: auto;
+            font-family: inherit
+        }
+
+        #editor {
+            height: auto;
+            min-height: 100%;
+            border-radius: 20px;
+            background: rgba(10, 5, 34, .6);
+            border: 1px solid var(--ln);
+            box-shadow: inset 0 3px 16px rgba(0, 0, 0, .45), 0 1px 0 rgba(255, 255, 255, .08)
+        }
+
+        .ql-editor {
+            height: auto;
+            overflow: visible;
+            min-height: 440px;
+            padding: 34px 42px;
+            font-size: 17px;
+            line-height: 1.75;
+            color: #e9e4ff
         }
 
         .ql-editor.ql-blank::before {
-            color: var(--ink-faint);
+            color: var(--faint);
             font-style: normal;
+            left: 42px
         }
 
-        footer {
-            text-align: center;
-            margin-top: 28px;
+        .ql-editor h1 {
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+            margin: 0 0 .4em
         }
 
-        footer p {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px;
-            letter-spacing: 0.04em;
-            color: var(--ink-faint);
-            margin: 0;
+        .ql-editor h2 {
+            font-size: 28px;
+            font-weight: 800
         }
 
-        @media (max-width: 560px) {
-            .page {
-                padding-top: 24px;
+        .ql-editor h3 {
+            font-size: 21px;
+            font-weight: 700
+        }
+
+        .ql-editor a {
+            color: var(--cy)
+        }
+
+        .ql-editor blockquote {
+            border-left: 4px solid var(--v1);
+            color: var(--soft);
+            padding-left: 16px
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 26px;
+            border-top: 1px solid var(--ln);
+            font-size: 13px;
+            color: var(--soft)
+        }
+
+        .status span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .status .l {
+            gap: 24px
+        }
+
+        #save {
+            color: #34d399
+        }
+
+        #save.busy {
+            color: #fbbf24
+        }
+
+        #save.off {
+            color: #fb7185
+        }
+
+        .right {
+            grid-area: right;
+            padding: 20px 18px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0
+        }
+
+        .right h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 12px;
+            font-size: 17px
+        }
+
+        .badge {
+            background: linear-gradient(180deg, #9f7bff, #6d4aff);
+            border-radius: 99px;
+            padding: 2px 10px;
+            font-size: 12px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4)
+        }
+
+        .who {
+            max-height: 42%;
+            overflow: auto;
+            padding-bottom: 8px
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 7px 4px;
+            font-weight: 600;
+            font-size: 15px
+        }
+
+        .row small {
+            color: var(--soft);
+            font-weight: 500;
+            font-size: 14px
+        }
+
+        .row .crown {
+            margin-left: auto;
+            color: #fbbf24
+        }
+
+        .row .dot {
+            position: relative
+        }
+
+        .sep {
+            height: 1px;
+            background: var(--ln);
+            margin: 12px 0 16px
+        }
+
+        #cms {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 10px
+        }
+
+        .cm {
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--ln);
+            border-radius: 16px;
+            padding: 12px 14px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08)
+        }
+
+        .cm .h {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 14px
+        }
+
+        .cm .h small {
+            color: var(--faint);
+            font-weight: 500
+        }
+
+        .cm p {
+            margin: 8px 0 0;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #ddd5ff;
+            word-break: break-word
+        }
+
+        .empty {
+            color: var(--faint);
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 6px 4px
+        }
+
+        .cin {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+            border: 1px solid var(--v1);
+            border-radius: 99px;
+            padding: 6px 6px 6px 18px;
+            background: rgba(10, 5, 34, .5);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, .4)
+        }
+
+        .cin input {
+            flex: 1;
+            min-width: 0;
+            background: transparent;
+            border: 0;
+            color: var(--ink);
+            font: 500 14px 'Plus Jakarta Sans', sans-serif
+        }
+
+        .cin input:focus {
+            outline: 0
+        }
+
+        .cin button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 0;
+            color: #fff;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(180deg, #9f7bff, #6d4aff);
+            box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), 0 8px 16px -6px rgba(109, 74, 255, .8)
+        }
+
+        #toast {
+            position: fixed;
+            left: 50%;
+            bottom: 28px;
+            transform: translate(-50%, 30px);
+            opacity: 0;
+            pointer-events: none;
+            background: #1d1347;
+            border: 1px solid var(--v1);
+            padding: 11px 20px;
+            border-radius: 99px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: .25s
+        }
+
+        #toast.on {
+            opacity: 1;
+            transform: translate(-50%, 0)
+        }
+
+        @media(max-width:1180px) {
+            .app {
+                grid-template-columns: 230px minmax(0, 1fr);
+                grid-template-areas: "side top" "side main"
             }
 
-            #editor {
-                height: 360px;
+            .right {
+                display: none
+            }
+        }
+
+        @media(max-width:820px) {
+            .app {
+                grid-template-columns: 1fr;
+                grid-template-areas: "top" "main";
+                padding: 10px;
+                gap: 10px
             }
 
-            h1.room-title {
-                font-size: 21px;
+            .side,
+            .stack,
+            .live,
+            .me .ic {
+                display: none
+            }
+
+            .status .l span+span {
+                display: none
+            }
+
+            .ql-editor {
+                padding: 22px 20px
             }
         }
     </style>
 </head>
 
 <body>
-
-    <div class="page">
-        <div class="topbar">
-            <div>
-                <p class="room-label">Live document</p>
-                <h1 class="room-title">{{ group_name }}</h1>
-            </div>
-            <div class="topbar-right">
-                <div class="presence">
-                    <span class="dot"></span>
-                    <span id="online-count">0</span>&nbsp;online
+    <div class="app">
+        <aside class="side panel">
+            <a class="brand" href="/"><svg viewBox="0 0 48 48" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#d8ccff" />
+                            <stop offset="1" stop-color="#7c5cff" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M24 4 44 15 24 26 4 15Z" fill="url(#lg)" />
+                    <path d="M4 23 24 34 44 23" fill="none" stroke="#a78bfa" stroke-width="4.5"
+                        stroke-linejoin="round" />
+                    <path d="M4 31 24 42 44 31" fill="none" stroke="#6d4aff" stroke-width="4.5" stroke-linejoin="round"
+                        opacity=".85" />
+                </svg>CollabEdit</a>
+            <nav><a class="nav on" href="/"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
+                    </svg>My Documents</a><a class="nav" href="#"><svg class="ic" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="8" r="3.5" />
+                        <path
+                            d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.2.7 3.5 2.6 3.5 5.5" />
+                    </svg>Shared with Me</a><a class="nav" href="#"><svg class="ic" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                    </svg>Recent</a><a class="nav" href="#"><svg class="ic" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3 -5.6 3 1.1-6.2L3 9.6l6.2-.9z" />
+                    </svg>Starred</a><a class="nav" href="#"><svg class="ic" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" />
+                    </svg>Trash</a></nav>
+            <a class="btn" href="/home"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14" />
+                </svg>New Document</a>
+            <div class="promo">
+                <div class="scene sm" style="--k:.5">
+                    <div class="rig">
+                        <div class="sheet s1"></div>
+                        <div class="sheet s2"></div>
+                        <div class="sheet s3"><i></i><i></i><i></i><i></i></div><span class="orb" data-p="0"
+                            style="left:-34px;top:10px;--z:90px;--os:58px;--c:#f472b6"></span><span class="orb"
+                            data-p="1" style="right:-30px;top:-6px;--z:80px;--os:52px;--c:#22d3ee;--d:-2s"></span><svg
+                            class="ptr" viewBox="0 0 40 40" style="right:6px;bottom:30px;width:40px">
+                            <path d="M6 4l26 12-11 3-4 11z" fill="#fff" stroke="#7c5cff" stroke-width="2.5"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </div>
                 </div>
-                <button id="copyLinkBtn">Copy link</button>
+                <h3>Collaborate<br>in Real Time</h3>
+                <p>Create, edit and share documents with your team.</p>
             </div>
-        </div>
+        </aside>
 
-        <div class="editor-card">
-            <div id="editor"></div>
-        </div>
+        <header class="top panel">
+            <span class="doc"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 3h8l5 5v13H6z" />
+                    <path d="M14 3v5h5M9 13h7M9 17h7" />
+                </svg></span>
+            <input id="title" value="Untitled document" aria-label="Document title" maxlength="60">
+            <button class="ib sm" id="star" title="Star this document"><svg class="ic" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3 -5.6 3 1.1-6.2L3 9.6l6.2-.9z" />
+                </svg></button>
+            <span class="live"><b></b>Live</span>
+            <span class="sp"></span>
+            <div class="stack" id="stack"></div>
+            <button class="btn" id="copyLinkBtn"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4" />
+                </svg>Share</button>
+            <button class="ib" id="focusCm" title="Comments"><svg class="ic" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 5h16v11H9l-5 4z" />
+                </svg></button>
+            <div class="me" id="meBox"><span id="meAv"></span><svg class="ic" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 9l6 6 6-6" />
+                </svg></div>
+        </header>
 
-        <footer>
-            <p>Django · Channels · Redis · WebSockets · PostgreSQL</p>
-        </footer>
+        <main class="main panel">
+            <div id="toolbar">
+                <span class="ql-formats"><button type="button" class="ql-undo" title="Undo"><svg class="ic"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 14L4 9l5-5" />
+                            <path d="M4 9h10a6 6 0 0 1 0 12h-3" />
+                        </svg></button><button type="button" class="ql-redo" title="Redo"><svg class="ic"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 14l5-5-5-5" />
+                            <path d="M20 9H10a6 6 0 0 0 0 12h3" />
+                        </svg></button></span>
+                <span class="ql-formats"><select class="ql-header">
+                        <option value="1"></option>
+                        <option value="2"></option>
+                        <option value="3"></option>
+                        <option selected></option>
+                    </select></span>
+                <span class="ql-formats"><button class="ql-bold"></button><button class="ql-italic"></button><button
+                        class="ql-underline"></button><select class="ql-color"></select></span>
+                <span class="ql-formats"><button class="ql-link"></button></span>
+                <span class="ql-formats"><button class="ql-list" value="ordered"></button><button class="ql-list"
+                        value="bullet"></button><button class="ql-blockquote"></button><button
+                        class="ql-clean"></button></span>
+            </div>
+            <div class="wrap">
+                <div id="editor"></div>
+            </div>
+            <div class="status">
+                <span class="l"><span id="words">Words: 0</span><span id="chars">Characters: 0</span></span>
+                <span class="l"><span id="save"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7 18a4.5 4.5 0 0 1-.6-9A6 6 0 0 1 18 9.5 4 4 0 0 1 17.5 18z" />
+                            <path d="M9.5 13l2 2 3.5-4" />
+                        </svg>All changes saved</span><span><svg class="ic" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="9" cy="8" r="3.5" />
+                            <path
+                                d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.2.7 3.5 2.6 3.5 5.5" />
+                        </svg><b id="online-count">1</b> online</span></span>
+            </div>
+        </main>
+
+        <aside class="right panel">
+            <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="8" r="3.5" />
+                    <path
+                        d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.2.7 3.5 2.6 3.5 5.5" />
+                </svg>Collaborators <span class="badge" id="collab-count">1</span></h3>
+            <div class="who" id="who"></div>
+            <div class="sep"></div>
+            <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 5h16v11H9l-5 4z" />
+                </svg>Comments <span class="badge" id="cm-count">0</span></h3>
+            <div id="cms"></div>
+            <div class="cin"><input id="cin" placeholder="Add a comment..." maxlength="300"
+                    aria-label="Add a comment"><button id="csend" aria-label="Send comment"><svg class="ic"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 3L10 14M21 3l-7 18-4-7-7-4z" />
+                    </svg></button></div>
+        </aside>
+    </div>
+    <div id="toast" role="status"></div>
+
+    <!-- Optional: pass the signed-in Google user (works with django-allauth; leave as-is for guests) -->
+    <div id="me-data" hidden
+        data-name="{% if user.is_authenticated %}{{ user.first_name|default:user.username }}{% endif %}"
+        data-pic="{% if user.is_authenticated %}{% with sa=user.socialaccount_set.all.0 %}{{ sa.get_avatar_url }}{% endwith %}{% endif %}">
     </div>
 
     {{ group_name|json_script:"group-name" }}
     {{ docs_json|json_script:"doc-data" }}
 
     <script>
-        const groupName = JSON.parse(document.getElementById("group-name").textContent);
-        const docData = JSON.parse(document.getElementById("doc-data").textContent);
-
-        const quill = new Quill("#editor", {
-            theme: "snow",
-            placeholder: "Start writing…",
-            modules: {
-                toolbar: [
-                    [{ header: [1, 2, 3, false] }],
-                    ["bold", "italic", "underline"],
-                    [{ list: "ordered" }, { list: "bullet" }],
-                    ["clean"]
-                ]
-            }
-        });
-
-        if (docData.content) {
-            quill.clipboard.dangerouslyPasteHTML(docData.content);
+        const PEOPLE = [
+            { name: 'Aditi', c: '#f472b6', img: 'https://randomuser.me/api/portraits/women/44.jpg' },
+            { name: 'Rohit', c: '#22d3ee', img: 'https://randomuser.me/api/portraits/men/32.jpg' },
+            { name: 'Priya', c: '#c084fc', img: 'https://randomuser.me/api/portraits/women/68.jpg' },
+            { name: 'Karan', c: '#fb923c', img: 'https://randomuser.me/api/portraits/men/75.jpg' },
+            { name: 'Meera', c: '#34d399', img: 'https://randomuser.me/api/portraits/women/12.jpg' },
+            { name: 'Arjun', c: '#60a5fa', img: 'https://randomuser.me/api/portraits/men/46.jpg' }];
+        function av(p, s) {
+            const fb = () => { const d = document.createElement('span'); d.className = 'av'; d.textContent = (p.name || '?')[0].toUpperCase(); d.style.setProperty('--c', p.c || '#8b5cf6'); if (s) d.style.setProperty('--s', s + 'px'); d.style.background = 'linear-gradient(145deg,' + (p.c || '#8b5cf6') + ',#4326c9)'; return d };
+            if (!p.img) return fb();
+            const i = document.createElement('img'); i.className = 'av'; i.alt = p.name; i.src = p.img; i.style.setProperty('--c', p.c || '#8b5cf6'); if (s) i.style.setProperty('--s', s + 'px');
+            i.onerror = () => i.replaceWith(fb()); return i
         }
-
-        const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-        const socket = new WebSocket(
-            protocol + window.location.host + "/ws/editor/" + groupName + "/"
-        );
-
-        socket.onopen = function () {
-            console.log("WebSocket Connected");
-        };
-
-        let isRemoteUpdate = false;
-
-        quill.on("text-change", function (delta, oldDelta, source) {
-            if (source === "user" && !isRemoteUpdate) {
-                socket.send(quill.root.innerHTML);
-            }
+        document.querySelectorAll('[data-p]').forEach(el => el.appendChild(av(PEOPLE[el.dataset.p])));
+        document.querySelectorAll('.scene').forEach(sc => {
+            const r = sc.querySelector('.rig'); if (!r) return;
+            sc.addEventListener('pointermove', e => { const b = sc.getBoundingClientRect(), x = (e.clientX - b.left) / b.width - .5, y = (e.clientY - b.top) / b.height - .5; r.style.setProperty('--ry', (-18 + x * 28) + 'deg'); r.style.setProperty('--rx', (8 - y * 24) + 'deg') });
+            sc.addEventListener('pointerleave', () => { r.style.removeProperty('--ry'); r.style.removeProperty('--rx') })
         });
 
-        socket.onmessage = function (event) {
-            const data = JSON.parse(event.data);
+        const groupName = JSON.parse(document.getElementById('group-name').textContent);
+        const docData = JSON.parse(document.getElementById('doc-data').textContent);
+        const $ = id => document.getElementById(id);
+        const md = $('me-data').dataset, ME = { name: md.name || 'You', img: md.pic || '', c: '#8b5cf6' };
+        const toast = t => { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 1800) };
 
-            if (data.type === "count") {
-                document.getElementById("online-count").innerText = data.count;
+        /* ---- editor (same sync logic as before) ---- */
+        const quill = new Quill('#editor', {
+            theme: 'snow', placeholder: 'Start writing...', modules: {
+                history: { userOnly: true },
+                toolbar: { container: '#toolbar', handlers: { undo() { this.quill.history.undo() }, redo() { this.quill.history.redo() } } }
             }
+        });
+        if (docData.content) { quill.clipboard.dangerouslyPasteHTML(docData.content); quill.history.clear() }
 
-            else if (data.type === "editor") {
-                if (data.message !== quill.root.innerHTML) {
-                    isRemoteUpdate = true;                    // ✅ CHANGE: flag before
-                    const selection = quill.getSelection();  // ✅ save cursor
-                    quill.clipboard.dangerouslyPasteHTML(data.message);
-                    if (selection) {
-                        quill.setSelection(selection);       // ✅ restore cursor
-                    }
-                    isRemoteUpdate = false;                  // ✅ flag after
-                }
+        const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socket = new WebSocket(protocol + location.host + '/ws/editor/' + groupName + '/');
+        let isRemoteUpdate = false, saveT;
+        const save = $('save'), CLOUD = save.innerHTML;
+        const setSave = (cls, txt) => { save.className = cls; save.innerHTML = CLOUD.replace('All changes saved', txt) };
+        function counts() { const t = quill.getText().trim(); $('words').textContent = 'Words: ' + (t ? t.split(/\s+/).length : 0); $('chars').textContent = 'Characters: ' + t.length.toLocaleString() }
+        counts();
+        socket.onopen = () => setSave('', 'All changes saved');
+        socket.onclose = () => setSave('off', 'Offline - refresh to reconnect');
+        quill.on('text-change', (d, o, source) => {
+            counts();
+            if (source === 'user' && !isRemoteUpdate) { socket.send(quill.root.innerHTML); setSave('busy', 'Saving...'); clearTimeout(saveT); saveT = setTimeout(() => setSave('', 'All changes saved'), 700) }
+        });
+        socket.onmessage = e => {
+            const data = JSON.parse(e.data);
+            if (data.type === 'count') presence(data.count);
+            else if (data.type === 'editor' && data.message !== quill.root.innerHTML) {
+                isRemoteUpdate = true; const sel = quill.getSelection(); quill.clipboard.dangerouslyPasteHTML(data.message); if (sel) quill.setSelection(sel); isRemoteUpdate = false; counts()
             }
         };
 
-        // --- Copy room link ---
-        const copyBtn = document.getElementById("copyLinkBtn");
-        copyBtn.addEventListener("click", () => {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                copyBtn.textContent = "Copied!";
-                copyBtn.classList.add("copied");
-                setTimeout(() => {
-                    copyBtn.textContent = "Copy link";
-                    copyBtn.classList.remove("copied");
-                }, 1800);
+        /* ---- presence: server sends a count; faces are placeholders until it sends real users ---- */
+        function presence(n) {
+            n = Math.max(1, +n || 1);
+            $('online-count').textContent = n; $('collab-count').textContent = n;
+            const list = [{ ...ME, role: 'You', me: 1 }].concat(PEOPLE.slice(0, Math.min(n - 1, PEOPLE.length)));
+            const st = $('stack'); st.innerHTML = ''; list.slice(0, 3).forEach(p => st.appendChild(av(p, 44)));
+            if (n > 3) { const m = document.createElement('span'); m.className = 'more'; m.textContent = '+' + (n - 3); st.appendChild(m) }
+            const w = $('who'); w.innerHTML = '';
+            list.forEach(p => {
+                const r = document.createElement('div'); r.className = 'row'; r.appendChild(av(p, 44));
+                const t = document.createElement('span'); t.textContent = p.me ? 'You ' : p.name + ' '; const s = document.createElement('small'); s.textContent = p.me ? '(Editor)' : '(Online)'; t.appendChild(s); r.appendChild(t);
+                if (p.me) r.insertAdjacentHTML('beforeend', '<span class="crown" title="Owner">&#128081;</span>'); w.appendChild(r)
             });
-        });
-    </script>
+            if (n - 1 > PEOPLE.length) { const x = document.createElement('div'); x.className = 'empty'; x.textContent = '+' + (n - 1 - PEOPLE.length) + ' more online'; w.appendChild(x) }
+        }
+        presence(1);
+        $('meAv').appendChild(av(ME, 44));
 
+        /* ---- title, star, share ---- */
+        const tk = 'title:' + groupName, sk = 'star:' + groupName, T = $('title');
+        try { T.value = localStorage.getItem(tk) || T.value; if (localStorage.getItem(sk)) $('star').classList.add('on') } catch (e) { }
+        const fit = () => { T.style.width = Math.max(80, T.value.length * 11 + 20) + 'px'; document.title = T.value + ' - CollabEdit' }; fit();
+        T.addEventListener('input', () => { fit(); try { localStorage.setItem(tk, T.value) } catch (e) { } });
+        $('star').onclick = e => { const on = e.currentTarget.classList.toggle('on'); try { on ? localStorage.setItem(sk, 1) : localStorage.removeItem(sk) } catch (x) { } };
+        $('copyLinkBtn').onclick = () => navigator.clipboard.writeText(location.href).then(() => toast('Link copied'));
+
+        /* ---- comments (stored in this browser only) ---- */
+        const ck = 'comments:' + groupName; let CM = []; try { CM = JSON.parse(localStorage.getItem(ck) || '[]') } catch (e) { }
+        const ago = t => { const m = Math.floor((Date.now() - t) / 6e4); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : Math.floor(m / 60) + ' hr ago' };
+        function renderCm() {
+            const box = $('cms'); box.innerHTML = ''; $('cm-count').textContent = CM.length;
+            if (!CM.length) { const e = document.createElement('div'); e.className = 'empty'; e.textContent = 'No comments yet. Add the first one below.'; box.appendChild(e); return }
+            CM.forEach(c => {
+                const d = document.createElement('div'); d.className = 'cm'; const h = document.createElement('div'); h.className = 'h'; h.appendChild(av(ME, 32));
+                const n = document.createElement('span'); n.textContent = c.n + ' '; const s = document.createElement('small'); s.textContent = ago(c.t); n.appendChild(s); h.appendChild(n);
+                const p = document.createElement('p'); p.textContent = c.x; d.append(h, p); box.appendChild(d)
+            }); box.scrollTop = box.scrollHeight
+        }
+        function addCm() { const v = $('cin').value.trim(); if (!v) return; CM.push({ n: ME.name, x: v, t: Date.now() }); try { localStorage.setItem(ck, JSON.stringify(CM)) } catch (e) { } $('cin').value = ''; renderCm() }
+        $('csend').onclick = addCm; $('cin').addEventListener('keydown', e => { if (e.key === 'Enter') addCm() });
+        $('focusCm').onclick = () => $('cin').focus(); renderCm();
+    </script>
 </body>
 
 </html>

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Revisions — {{ document.title }} — CollabEdit{% endblock %}
+
+{% block extra_head %}
+<style>
+  .page { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-size: 1.5rem; }
+  .page-header p  { color: var(--text-muted); font-size: .9rem; margin-top: .4rem; }
+
+  .rev-list { display: flex; flex-direction: column; gap: .75rem; }
+  .rev-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .rev-info { flex: 1; min-width: 0; }
+  .rev-num  { font-weight: 600; font-size: .95rem; }
+  .rev-meta { color: var(--text-muted); font-size: .8rem; margin-top: .2rem; }
+  .rev-actions { display: flex; gap: .5rem; flex-shrink: 0; }
+
+  .trigger-badge {
+    font-size: .7rem;
+    padding: .15rem .45rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .trigger-manual  { background: rgba(124,106,247,.2); color: var(--accent-hover); }
+  .trigger-auto    { background: rgba(142,147,176,.15); color: var(--text-muted); }
+  .trigger-restore { background: rgba(224,180,92,.12); color: #f5d08a; }
+
+  .empty { text-align:center; padding:3rem; color:var(--text-muted); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <a href="{% url 'documents:editor' document.uuid %}" class="btn btn-secondary btn-sm"
+       style="margin-bottom:.75rem;">← Back to editor</a>
+    <h1>Revisions — {{ document.title }}</h1>
+    <p>Point-in-time snapshots of the document's Yjs state. Restoring creates a pre-restore snapshot first.</p>
+  </div>
+
+  {% if revisions %}
+  <div class="rev-list">
+    {% for rev in revisions %}
+    <div class="rev-card">
+      <div class="rev-info">
+        <div class="rev-num">
+          #{{ rev.revision_number }}
+          <span class="trigger-badge trigger-{{ rev.trigger }}">{{ rev.get_trigger_display }}</span>
+        </div>
+        <div class="rev-meta">
+          {{ rev.created_at|date:"Y-m-d H:i" }} UTC
+          {% if rev.created_by %} · by {{ rev.created_by.username }}{% endif %}
+        </div>
+      </div>
+      <div class="rev-actions">
+        {% if role == "owner" or role == "editor" %}
+        <form method="post" action="{% url 'documents:restore_revision' document.uuid rev.revision_number %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-secondary btn-sm"
+            onclick="return confirm('Restore revision #{{ rev.revision_number }}? The current state will be saved as a pre-restore snapshot.')">
+            Restore
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>No revisions yet. Revisions are created automatically every {{ auto_snapshot_every }} updates, or you can trigger one manually.</p>
+    {% if role != "viewer" %}
+    <form method="post" action="{% url 'documents:create_revision' document.uuid %}" style="margin-top:1.25rem;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">Save revision now</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

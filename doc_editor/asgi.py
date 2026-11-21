@@ -1,20 +1,31 @@
+"""
+ASGI configuration for CollabEdit.
+
+Wraps WebSocket connections with:
+  1. AllowedHostsOriginValidator — rejects cross-origin WebSocket connections.
+  2. AuthMiddlewareStack — resolves Django session to scope["user"].
+"""
 import os
 
-os.environ.setdefault(
-    "DJANGO_SETTINGS_MODULE",
-    "doc_editor.settings"
-)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "doc_editor.settings.development")
 
 from django.core.asgi import get_asgi_application
 
 django_asgi_app = get_asgi_application()
 
+from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
-from documents.routing import websocket_urlpatterns
+from channels.security.websocket import AllowedHostsOriginValidator
 
-application = ProtocolTypeRouter({
-    "http": django_asgi_app,
-    "websocket": URLRouter(
-        websocket_urlpatterns
-    ),
-})
+from apps.collaboration.routing import websocket_urlpatterns
+
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+        "websocket": AllowedHostsOriginValidator(
+            AuthMiddlewareStack(
+                URLRouter(websocket_urlpatterns)
+            )
+        ),
+    }
+)
