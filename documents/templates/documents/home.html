@@ -2,449 +2,297 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CollabEdit - Write together in real time</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Write together — Live Document Workspace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
         rel="stylesheet">
-
     <style>
         :root {
-            --bg: #090519;
-            --ink: #efeaff;
-            --soft: #b3a8e0;
-            --faint: #7d71b0;
-            --v1: #8b5cf6;
-            --v2: #6d4aff;
-            --cy: #22d3ee;
-            --pk: #f472b6;
-            --or: #fb923c;
-            --gl: rgba(34, 22, 80, .58);
-            --ln: rgba(167, 139, 250, .22)
+            --paper: #F6F3EC;
+            --paper-line: #E4DECD;
+            --ink: #1C1F22;
+            --ink-soft: #5B6066;
+            --ink-faint: #9A968A;
+            --coral: #E2543D;
+            --teal: #2C8C82;
+            --card-bg: #FFFEFB;
+            --line: #DCD5C4;
         }
 
         * {
-            box-sizing: border-box
+            box-sizing: border-box;
         }
 
         html,
         body {
             margin: 0;
-            min-height: 100%
+            padding: 0;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background-color: var(--paper);
+            background-image: repeating-linear-gradient(to bottom,
+                    transparent 0px,
+                    transparent 35px,
+                    var(--paper-line) 36px);
             color: var(--ink);
-            background: var(--bg);
-            -webkit-font-smoothing: antialiased
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background: radial-gradient(900px 600px at 8% 0%, rgba(139, 92, 246, .45), transparent 60%), radial-gradient(800px 600px at 100% 100%, rgba(236, 72, 153, .28), transparent 60%), radial-gradient(700px 500px at 90% 5%, rgba(34, 211, 238, .18), transparent 60%), linear-gradient(160deg, #0d0626, #160a3f 55%, #0a0620)
-        }
-
-        a {
-            color: inherit
-        }
-
-        .panel {
-            background: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .015)), var(--gl);
-            border: 1px solid var(--ln);
-            border-radius: 26px;
-            backdrop-filter: blur(22px) saturate(140%);
-            -webkit-backdrop-filter: blur(22px) saturate(140%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), inset 0 -2px 8px rgba(0, 0, 0, .25), 0 30px 60px -24px rgba(0, 0, 0, .7), 0 0 40px -10px rgba(139, 92, 246, .35)
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-family: inherit;
-            font-weight: 700;
-            font-size: 14px;
-            color: #fff;
-            border: 0;
-            border-radius: 16px;
-            padding: 13px 20px;
-            cursor: pointer;
-            text-decoration: none;
-            background: linear-gradient(180deg, #9f7bff, #6d4aff 60%, #5a36e6);
-            box-shadow: inset 0 1.5px 0 rgba(255, 255, 255, .45), inset 0 -3px 0 rgba(30, 10, 110, .5), 0 14px 26px -8px rgba(109, 74, 255, .75);
-            transition: transform .12s, box-shadow .12s
-        }
-
-        .btn:hover {
-            transform: translateY(-2px)
-        }
-
-        .btn:active {
-            transform: translateY(1px);
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, .4), 0 6px 12px -6px rgba(109, 74, 255, .7)
-        }
-
-        .btn.ghost {
-            background: rgba(255, 255, 255, .06);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 0 0 1px var(--ln)
-        }
-
-        :focus-visible {
-            outline: 2px solid var(--cy);
-            outline-offset: 3px
-        }
-
-        .ic {
-            width: 20px;
-            height: 20px;
-            flex: none
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 800;
-            font-size: 22px;
-            letter-spacing: -.02em;
-            text-decoration: none
-        }
-
-        .brand svg {
-            width: 40px;
-            height: 40px;
-            filter: drop-shadow(0 6px 10px rgba(139, 92, 246, .6))
-        }
-
-        .av {
-            --s: 40px;
-            width: var(--s);
-            height: var(--s);
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--c, #8b5cf6);
-            background: #2a1c63;
-            box-shadow: 0 6px 14px -4px rgba(0, 0, 0, .6), 0 0 0 3px rgba(12, 6, 34, .85);
-            display: grid;
-            place-items: center;
-            font-weight: 800;
-            color: #fff;
-            flex: none
-        }
-
-        .scene {
-            perspective: 1000px;
-            position: relative;
-            display: grid;
-            place-items: center
-        }
-
-        .rig {
-            position: relative;
-            width: 260px;
-            height: 300px;
-            transform-style: preserve-3d;
-            transform: scale(var(--k, 1)) rotateX(var(--rx, 8deg)) rotateY(var(--ry, -18deg));
-            transition: transform .15s ease-out
-        }
-
-        .sheet {
-            position: absolute;
-            inset: 0;
-            border-radius: 28px;
-            background: linear-gradient(145deg, #b79bff, #6d4aff 55%, #4326c9);
-            box-shadow: inset 0 2px 0 rgba(255, 255, 255, .5), inset 0 -10px 18px rgba(20, 5, 90, .5), 0 40px 50px -10px rgba(0, 0, 0, .6)
-        }
-
-        .s1 {
-            transform: translateZ(-64px);
-            opacity: .5;
-            filter: hue-rotate(60deg)
-        }
-
-        .s2 {
-            transform: translateZ(-32px);
-            opacity: .8;
-            filter: hue-rotate(25deg)
-        }
-
-        .s3 {
-            padding: 34px 28px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px
-        }
-
-        .s3 i {
-            display: block;
-            height: 13px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, .88);
-            box-shadow: 0 2px 0 rgba(20, 5, 90, .3)
-        }
-
-        .s3 i:nth-child(2) {
-            width: 80%
-        }
-
-        .s3 i:nth-child(3) {
-            width: 92%
-        }
-
-        .s3 i:nth-child(4) {
-            width: 58%;
-            background: rgba(103, 232, 249, .9)
-        }
-
-        .orb {
-            position: absolute;
-            transform: translateZ(var(--z, 80px));
-            animation: bob 5s ease-in-out infinite;
-            animation-delay: var(--d, 0s)
-        }
-
-        .orb .av {
-            --s: var(--os, 60px);
-            border-width: 3px;
-            box-shadow: 0 18px 24px -8px rgba(0, 0, 0, .65), 0 0 24px -2px var(--c)
-        }
-
-        .flag {
-            position: absolute;
-            transform: translateZ(110px);
-            padding: 5px 12px;
-            border-radius: 9px 9px 9px 2px;
-            font-size: 12px;
-            font-weight: 800;
-            color: #160a3f;
-            box-shadow: 0 10px 18px -6px rgba(0, 0, 0, .5);
-            animation: bob 6s ease-in-out infinite
-        }
-
-        .ptr {
-            position: absolute;
-            transform: translateZ(100px);
-            width: 44px;
-            filter: drop-shadow(0 10px 8px rgba(0, 0, 0, .5))
-        }
-
-        @keyframes bob {
-            50% {
-                translate: 0 -10px
-            }
-        }
-
-        @media(prefers-reduced-motion:reduce) {
-            * {
-                animation: none !important;
-                transition: none !important
-            }
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
         .page {
-            max-width: 1180px;
+            max-width: 980px;
             margin: 0 auto;
-            padding: 26px 28px 40px;
+            padding: 64px 24px 40px;
             min-height: 100vh;
             display: flex;
-            flex-direction: column
-        }
-
-        .nb {
-            display: flex;
-            align-items: center;
-            justify-content: space-between
+            flex-direction: column;
         }
 
         .hero {
             flex: 1;
-            display: grid;
-            grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
-            gap: 30px;
+            padding-top: 6vh;
+        }
+
+        .eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            display: flex;
             align-items: center;
-            padding: 4vh 0
+            gap: 8px;
+            margin: 0 0 28px;
         }
 
-        h1 {
-            font-size: clamp(40px, 5.6vw, 70px);
-            line-height: 1.05;
-            letter-spacing: -.03em;
-            font-weight: 800;
-            margin: 0 0 20px;
-            min-height: 2.2em
+        .eyebrow .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--coral);
+            box-shadow: 0 0 0 0 rgba(226, 84, 61, 0.5);
+            animation: pulse 2.2s infinite;
         }
 
-        .sa {
-            color: #f9a8d4
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(226, 84, 61, 0.45);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(226, 84, 61, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(226, 84, 61, 0);
+            }
         }
 
-        .sb {
-            color: #67e8f9
+        h1.headline {
+            font-family: 'Fraunces', serif;
+            font-weight: 500;
+            font-size: clamp(38px, 6vw, 66px);
+            line-height: 1.08;
+            letter-spacing: -0.01em;
+            margin: 0 0 22px;
+            min-height: 1.3em;
+        }
+
+        .seg-a {
+            color: var(--coral);
+        }
+
+        .seg-b {
+            color: var(--teal);
         }
 
         .caret {
             display: inline-block;
-            width: 4px;
-            height: .85em;
-            margin-left: 4px;
-            vertical-align: -.05em;
-            border-radius: 2px;
-            background: #f9a8d4;
-            animation: bl 1s steps(1) infinite
+            width: 2px;
+            height: 0.9em;
+            background: var(--teal);
+            margin-left: 2px;
+            vertical-align: -0.05em;
+            animation: blink 1s steps(1) infinite;
         }
 
-        @keyframes bl {
+        @keyframes blink {
             50% {
-                opacity: 0
+                opacity: 0;
             }
         }
 
-        .sub {
-            font-size: 18px;
-            line-height: 1.65;
-            color: var(--soft);
-            max-width: 500px;
-            margin: 0 0 32px
+        .subcopy {
+            font-size: 17px;
+            line-height: 1.6;
+            color: var(--ink-soft);
+            max-width: 520px;
+            margin: 0 0 44px;
         }
 
-        .cards {
+        .actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 26px
+            gap: 18px;
+            margin-bottom: 36px;
         }
 
         .card {
-            padding: 22px;
+            background: var(--card-bg);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 26px 26px 24px;
             display: flex;
             flex-direction: column;
-            border-radius: 24px
         }
 
         .card h2 {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            font-size: 21px;
             margin: 0 0 8px;
-            font-size: 20px
         }
 
         .card p {
-            margin: 0 0 16px;
             font-size: 14px;
-            line-height: 1.55;
-            color: var(--soft);
-            flex: 1
+            color: var(--ink-soft);
+            line-height: 1.5;
+            margin: 0 0 18px;
+            flex-grow: 1;
         }
 
-        .card .btn {
-            align-self: flex-start
-        }
-
-        .jr {
-            display: flex;
-            gap: 8px
-        }
-
-        .jr input {
-            flex: 1;
-            min-width: 0;
-            font: 500 14px 'Plus Jakarta Sans', sans-serif;
-            padding: 12px 14px;
-            border-radius: 14px;
-            border: 1px solid var(--ln);
-            background: rgba(10, 5, 34, .6);
-            color: var(--ink);
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, .4)
-        }
-
-        .jr input::placeholder {
-            color: var(--faint)
-        }
-
-        .jr input:focus {
-            outline: 2px solid var(--v1)
-        }
-
-        .jr .btn {
-            padding: 12px 16px
-        }
-
-        .err {
-            color: #fda4af;
-            font-size: 13px;
-            margin: 10px 0 0 !important;
-            flex: 0 !important;
-            min-height: 1em
-        }
-
-        .chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 0;
-            margin: 0;
-            list-style: none
-        }
-
-        .chips li {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 99px;
+        button {
+            font-family: 'Inter', sans-serif;
             font-weight: 600;
             font-size: 14px;
-            color: var(--soft);
-            background: rgba(255, 255, 255, .05);
-            border: 1px solid var(--ln);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1)
+            border: none;
+            border-radius: 7px;
+            padding: 12px 18px;
+            cursor: pointer;
+            transition: transform 0.12s ease, opacity 0.12s ease;
         }
 
-        .chips li::before {
-            content: "";
-            width: 9px;
-            height: 9px;
+        button:hover {
+            opacity: 0.92;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:focus-visible {
+            outline: 2px solid var(--ink);
+            outline-offset: 2px;
+        }
+
+        #createBtn {
+            background: var(--ink);
+            color: var(--paper);
+            align-self: flex-start;
+        }
+
+        .join-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .join-row input {
+            flex: 1;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            padding: 11px 12px;
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            background: #FBFAF6;
+            color: var(--ink);
+        }
+
+        .join-row input::placeholder {
+            color: var(--ink-faint);
+        }
+
+        .join-row input:focus {
+            outline: none;
+            border-color: var(--teal);
+        }
+
+        #joinBtn {
+            background: transparent;
+            color: var(--teal);
+            border: 1px solid var(--teal);
+        }
+
+        #joinBtn:hover {
+            background: rgba(44, 140, 130, 0.08);
+            opacity: 1;
+        }
+
+        .error {
+            font-size: 12.5px;
+            color: var(--coral);
+            margin: 8px 0 0;
+            min-height: 1em;
+        }
+
+        .features {
+            display: flex;
+            gap: 22px;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 8px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            color: var(--ink-soft);
+        }
+
+        .features li {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .features li::before {
+            content: '';
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #fff, #7c5cff 60%);
-            box-shadow: 0 0 10px #8b5cf6
+            background: var(--ink-faint);
+            display: inline-block;
         }
 
-        .scene.big {
-            height: 520px
+        footer {
+            border-top: 1px solid var(--line);
+            padding-top: 18px;
+            margin-top: 24px;
+            text-align: center;
         }
 
-        @media(max-width:940px) {
-            .hero {
-                grid-template-columns: 1fr
-            }
-
-            .scene.big {
-                height: 380px;
-                order: -1
-            }
-
-            .scene.big .rig {
-                --k: .85 !important
-            }
-
-            h1 {
-                min-height: 0
-            }
+        footer p {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11.5px;
+            letter-spacing: 0.04em;
+            color: var(--ink-faint);
+            margin: 0;
         }
 
-        @media(max-width:560px) {
-            .cards {
-                grid-template-columns: 1fr
+        @media (max-width:640px) {
+            .actions {
+                grid-template-columns: 1fr;
             }
 
-            .scene.big {
-                height: 320px;
-                overflow: hidden
+            .features {
+                flex-wrap: wrap;
+                row-gap: 8px;
+            }
+
+            .page {
+                padding-top: 40px;
             }
         }
     </style>
@@ -452,99 +300,102 @@
 
 <body>
     <div class="page">
-        <div class="nb"><a class="brand" href="/"><svg viewBox="0 0 48 48" aria-hidden="true">
-                    <defs>
-                        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0" stop-color="#d8ccff" />
-                            <stop offset="1" stop-color="#7c5cff" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M24 4 44 15 24 26 4 15Z" fill="url(#lg)" />
-                    <path d="M4 23 24 34 44 23" fill="none" stroke="#a78bfa" stroke-width="4.5"
-                        stroke-linejoin="round" />
-                    <path d="M4 31 24 42 44 31" fill="none" stroke="#6d4aff" stroke-width="4.5" stroke-linejoin="round"
-                        opacity=".85" />
-                </svg>CollabEdit</a><a class="btn ghost" href="/login/">Sign in</a></div>
         <main class="hero">
-            <div>
-                <h1><span id="typed"></span><span class="caret" id="caret"></span></h1>
-                <p class="sub">Start a document or join one already in progress. Every change is shared the moment you
-                    make it.</p>
-                <div class="cards">
-                    <div class="card panel">
-                        <h2>Start fresh</h2>
-                        <p>Create a new document with its own private link and share it with anyone you want to write
-                            with.</p><button class="btn" id="createBtn">Create new document</button>
-                    </div>
-                    <div class="card panel">
-                        <h2>Join a document</h2>
-                        <p>Paste a link or room code to jump into an existing session.</p>
-                        <div class="jr"><input id="joinInput" type="text" placeholder="Paste link or code"
-                                aria-label="Document link or code"><button class="btn ghost" id="joinBtn">Join</button>
-                        </div>
-                        <p class="err" id="joinError" role="alert"></p>
-                    </div>
+            <p class="eyebrow"><span class="dot"></span>Live document workspace</p>
+            <h1 class="headline"><span id="typed"></span><span class="caret" id="caret"></span></h1>
+            <p class="subcopy">No sign-in. No setup. Start a document or join one already in progress — every change is
+                shared the moment you make it.</p>
+
+            <div class="actions">
+                <div class="card">
+                    <h2>Start fresh</h2>
+                    <p>Spin up a new document with its own private link. Share it with anyone you want to write with.
+                    </p>
+                    <button id="createBtn">Create new document →</button>
                 </div>
-                <ul class="chips">
-                    <li>Real-time sync</li>
-                    <li>Auto-saved</li>
-                    <li>Share by link</li>
-                </ul>
-            </div>
-            <div class="scene big" style="--k:1.25">
-                <div class="rig">
-                    <div class="sheet s1"></div>
-                    <div class="sheet s2"></div>
-                    <div class="sheet s3"><i></i><i></i><i></i><i></i></div><span class="orb" data-p="0"
-                        style="left:-70px;top:20px;--z:110px;--os:78px;--c:#f472b6"></span><span class="orb" data-p="1"
-                        style="right:-64px;top:-14px;--z:90px;--os:68px;--c:#22d3ee;--d:-1.5s"></span><span class="orb"
-                        data-p="2" style="left:-40px;bottom:-24px;--z:100px;--os:64px;--c:#c084fc;--d:-3s"></span><span
-                        class="orb" data-p="3"
-                        style="right:-50px;bottom:36px;--z:120px;--os:72px;--c:#fb923c;--d:-4s"></span><span
-                        class="flag" style="background:#f9a8d4;left:34px;top:112px;--d:-1s">Aditi</span><span
-                        class="flag" style="background:#67e8f9;right:30px;top:168px;--d:-3s">Rohit</span><svg
-                        class="ptr" viewBox="0 0 40 40" style="left:120px;top:196px;width:52px">
-                        <path d="M6 4l26 12-11 3-4 11z" fill="#fff" stroke="#7c5cff" stroke-width="2.5"
-                            stroke-linejoin="round" />
-                    </svg>
+                <div class="card">
+                    <h2>Join a document</h2>
+                    <p>Paste a link or room code to jump straight into an existing session.</p>
+                    <div class="join-row">
+                        <input id="joinInput" type="text" placeholder="Paste document link or code" />
+                        <button id="joinBtn">Join</button>
+                    </div>
+                    <p class="error" id="joinError"></p>
                 </div>
             </div>
+
+            <ul class="features">
+                <li>Real-time sync</li>
+                <li>Auto-saved</li>
+                <li>Share by link</li>
+            </ul>
         </main>
+
+        <footer>
+            <p>Django · Channels · Redis · WebSockets · PostgreSQL</p>
+        </footer>
     </div>
+
     <script>
-        const PEOPLE = [
-            { name: 'Aditi', c: '#f472b6', img: 'https://randomuser.me/api/portraits/women/44.jpg' },
-            { name: 'Rohit', c: '#22d3ee', img: 'https://randomuser.me/api/portraits/men/32.jpg' },
-            { name: 'Priya', c: '#c084fc', img: 'https://randomuser.me/api/portraits/women/68.jpg' },
-            { name: 'Karan', c: '#fb923c', img: 'https://randomuser.me/api/portraits/men/75.jpg' },
-            { name: 'Meera', c: '#34d399', img: 'https://randomuser.me/api/portraits/women/12.jpg' },
-            { name: 'Arjun', c: '#60a5fa', img: 'https://randomuser.me/api/portraits/men/46.jpg' }];
-        function av(p, s) {
-            const fb = () => { const d = document.createElement('span'); d.className = 'av'; d.textContent = (p.name || '?')[0].toUpperCase(); d.style.setProperty('--c', p.c || '#8b5cf6'); if (s) d.style.setProperty('--s', s + 'px'); d.style.background = 'linear-gradient(145deg,' + (p.c || '#8b5cf6') + ',#4326c9)'; return d };
-            if (!p.img) return fb();
-            const i = document.createElement('img'); i.className = 'av'; i.alt = p.name; i.src = p.img; i.style.setProperty('--c', p.c || '#8b5cf6'); if (s) i.style.setProperty('--s', s + 'px');
-            i.onerror = () => i.replaceWith(fb()); return i
+        // --- Typing animation: two collaborators finishing one sentence ---
+        const segments = [
+            { text: "Write together,", cls: "seg-a" },
+            { text: " in real time.", cls: "seg-b" }
+        ];
+        const typedEl = document.getElementById('typed');
+        const caret = document.getElementById('caret');
+
+        function typeSegments(segs, i = 0, j = 0) {
+            if (i >= segs.length) return; // done — caret keeps blinking in last color
+            const seg = segs[i];
+            caret.style.background = seg.cls === 'seg-a' ? 'var(--coral)' : 'var(--teal)';
+
+            if (j === 0) {
+                const span = document.createElement('span');
+                span.className = seg.cls;
+                span.id = 'live-seg-' + i;
+                typedEl.appendChild(span);
+            }
+            const span = document.getElementById('live-seg-' + i);
+
+            if (j < seg.text.length) {
+                span.textContent += seg.text[j];
+                setTimeout(() => typeSegments(segs, i, j + 1), 38 + Math.random() * 35);
+            } else {
+                setTimeout(() => typeSegments(segs, i + 1, 0), 260);
+            }
         }
-        document.querySelectorAll('[data-p]').forEach(el => el.appendChild(av(PEOPLE[el.dataset.p])));
-        document.querySelectorAll('.scene').forEach(sc => {
-            const r = sc.querySelector('.rig'); if (!r) return;
-            sc.addEventListener('pointermove', e => { const b = sc.getBoundingClientRect(), x = (e.clientX - b.left) / b.width - .5, y = (e.clientY - b.top) / b.height - .5; r.style.setProperty('--ry', (-18 + x * 28) + 'deg'); r.style.setProperty('--rx', (8 - y * 24) + 'deg') });
-            sc.addEventListener('pointerleave', () => { r.style.removeProperty('--ry'); r.style.removeProperty('--rx') })
+        typeSegments(segments);
+
+        // --- Create new document: generate a UUID room and redirect ---
+        document.getElementById('createBtn').addEventListener('click', () => {
+            window.location.href = "/home";
         });
 
-        const segs = [{ t: 'Write together,', c: 'sa', k: '#f9a8d4' }, { t: ' in real time.', c: 'sb', k: '#67e8f9' }], typed = document.getElementById('typed'), caret = document.getElementById('caret');
-        (function type(i = 0, j = 0) {
-            if (i >= segs.length) return; const s = segs[i]; caret.style.background = s.k;
-            if (!j) { const sp = document.createElement('span'); sp.className = s.c; sp.id = 'seg' + i; typed.appendChild(sp) }
-            if (j < s.t.length) { document.getElementById('seg' + i).textContent += s.t[j]; setTimeout(() => type(i, j + 1), 38 + Math.random() * 35) } else setTimeout(() => type(i + 1, 0), 260)
-        })();
-        document.getElementById('createBtn').onclick = () => { location.href = '/home' };
-        const ji = document.getElementById('joinInput'), je = document.getElementById('joinError'), re = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
-        function join() {
-            const v = ji.value.trim(); je.textContent = ''; if (!v) { je.textContent = 'Paste a document link or code first.'; return }
-            const m = v.match(re); m ? location.href = '/' + m[0] + '/' : je.textContent = "That doesn't look like a valid document link or code."
+        // --- Join existing document: extract UUID from pasted link or code ---
+        const joinInput = document.getElementById('joinInput');
+        const joinError = document.getElementById('joinError');
+        const uuidPattern = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+
+        function attemptJoin() {
+            const value = joinInput.value.trim();
+            joinError.textContent = '';
+            if (!value) {
+                joinError.textContent = 'Paste a document link or code first.';
+                return;
+            }
+            const match = value.match(uuidPattern);
+            if (match) {
+                window.location.href = '/' + match[0] + '/';
+            } else {
+                joinError.textContent = "That doesn't look like a valid document link or code.";
+            }
         }
-        document.getElementById('joinBtn').onclick = join; ji.addEventListener('keydown', e => { if (e.key === 'Enter') join() });
+
+        document.getElementById('joinBtn').addEventListener('click', attemptJoin);
+        joinInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') attemptJoin();
+        });
     </script>
 </body>
 

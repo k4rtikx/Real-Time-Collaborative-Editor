@@ -1,196 +1,169 @@
-# CollabEdit — Real-Time Collaborative Document Editor
+# 📝 Real-Time Collaborative Editor
 
-> A production-grade collaborative document editing system built with **Django**, **Django Channels**, **Yjs (CRDT)**, **Redis**, and **PostgreSQL**.
+A real-time collaborative document editor where multiple users can write and edit documents simultaneously. Changes sync instantly across all connected clients via WebSockets.
 
-[![CI](https://github.com/<your-org>/real-time-collaborative-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/<your-org>/real-time-collaborative-editor/actions)
-
----
-
-## Features
-
-- **Real-time collaboration** — Multiple users edit the same document simultaneously using **Yjs CRDT** (Conflict-free Replicated Data Types) — no edit loss, no conflicts
-- **Role-based access control** — Owner / Editor / Viewer roles per document
-- **Document sharing** — Share documents with other users by username
-- **Revision history** — Automatic and manual point-in-time snapshots with restore
-- **Presence** — Live list of who is currently editing
-- **Redis Token Bucket rate limiting** — HTTP and WebSocket flood protection
-- **Secure by default** — CSRF, session auth, HTTPS enforcement, secure cookies
-- **Production-ready** — Docker, CI/CD (GitHub Actions), Render + Neon deployment
+**🔗 Live Demo:** [realtimedocs.onrender.com](https://realtimedocs.onrender.com)
 
 ---
 
-## Technology stack
+## ✨ Features
 
-| Component | Technology |
+- ⚡ **Real-time sync** — every keystroke is broadcast to all connected users instantly
+- 🔗 **UUID-based room URLs** — each document gets a unique shareable link
+- 👥 **Online presence counter** — shows how many users are in the room
+- 🚀 **Redis caching** — document content served from cache, not DB, on every load
+- 🔓 **No sign-in required** — open a link and start writing
+- 💾 **Auto-saved** — content persists in PostgreSQL
+- ✍️ **Rich text editor** — bold, italic, underline, headings, lists via Quill.js
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
 |---|---|
-| Backend framework | Python 3.13, Django 5.2 |
-| Real-time layer | Django Channels 4, ASGI, Uvicorn |
-| Collaboration engine | Yjs CRDT (pycrdt server-side, y-quill client-side) |
-| Rich text editor | Quill.js 1.3.7 |
-| Primary database | PostgreSQL (Neon serverless) |
-| Cache / pub-sub | Redis (Render managed) |
-| Static files | WhiteNoise |
-| Containerisation | Docker, Docker Compose |
-| CI/CD | GitHub Actions |
-| Hosting | Render |
+| Backend | Django 5, Django Channels |
+| WebSockets | ASGI, Uvicorn |
+| Cache / Pub-Sub | Redis |
+| Database | PostgreSQL (NeonDB) |
+| Editor | Quill.js |
+| Containerization | Docker, Docker Compose |
+| Deployment | Render |
 
 ---
 
-## Quick start (local development)
+## 📁 Project Structure
+
+```
+Real-Time-Collaborative-Editor/
+├── doc_editor/
+│   ├── asgi.py          # ASGI config with WebSocket routing
+│   ├── settings.py      # Project settings
+│   └── urls.py          # Root URL routing
+├── documents/
+│   ├── consumers.py     # WebSocket consumer (Django Channels)
+│   ├── models.py        # Group, Document models
+│   ├── views.py         # home, index, room views
+│   ├── urls.py          # URL routing
+│   └── templates/
+│       └── documents/
+│           ├── home.html    # Landing page
+│           └── index.html   # Editor page
+├── docker-compose.yml
+├── Dockerfile
+└── requirements.txt
+```
+
+---
+
+## 🔄 How It Works
+
+```
+User visits /          → Landing page (home.html)
+Clicks "Create"        → /home → UUID generated → redirect to /uuid/
+User visits /uuid/     → Editor loads, WebSocket connects
+User types             → WebSocket sends HTML to server
+Server broadcasts      → All connected clients receive and render update
+Content saved          → Redis cache + PostgreSQL on each change
+```
+
+### WebSocket Flow
+
+```
+Client connects → ws://host/ws/editor/<room_id>/
+                → Consumer joins channel group
+
+Client types    → socket.send(HTML)
+                → Consumer receives
+                → Broadcasts to group
+                → Saves to Redis + DB
+
+New client joins → Receives latest content from Redis cache
+```
+
+### Architecture
+
+```
+Browser (User A)          Browser (User B)
+     │                         │
+     │  WebSocket              │  WebSocket
+     └──────────┬──────────────┘
+                │
+         [Django Channels]
+         [Uvicorn ASGI Server]
+                │
+         DocumentConsumer
+                │
+        ┌───────┴────────┐
+        │                │
+    [Redis]          [PostgreSQL]
+  (Channel Layer     (Persistent
+   + Cache)           Storage)
+```
+
+---
+
+## 🚀 Local Setup
 
 ### Prerequisites
-- Python 3.13+
-- Redis running locally (`redis-server`)
-- PostgreSQL database (or use Neon)
+- Docker Desktop installed and running
+
+### Run locally
 
 ```bash
-# Clone
-git clone <repo-url>
-cd real-time-collaborative-editor
+# Clone the repo
+git clone https://github.com/k4rtikx/Real-Time-Collaborative-Editor.git
+cd Real-Time-Collaborative-Editor
 
-# Virtual environment
-python -m venv venv
-source venv/bin/activate       # Linux/macOS
-.\venv\Scripts\Activate        # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-
-# Configure environment
-cp .env.example .env
-# Edit .env — set SECRET_KEY, DATABASE_URL, REDIS_URL
-
-# Database setup
-python manage.py migrate
-python manage.py createsuperuser
-
-# Run (ASGI — required for WebSocket support)
-uvicorn doc_editor.asgi:application --reload
+# Start all services (Django + Redis)
+docker-compose up --build
 ```
 
-Open `http://localhost:8000` → register → create a document → share the URL with another browser.
+Visit `http://localhost:8000`
+
+> ⚠️ **Always use `docker-compose up`**, not `uvicorn` directly.  
+> Running `uvicorn` alone won't start Redis, and the app will crash.
 
 ---
 
-## Docker Compose
+## ⚙️ Environment Variables
 
-```bash
-docker compose up --build
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py createsuperuser
-```
+Create a `.env` file in the root:
 
-App available at `http://localhost:8000`.
-
----
-
-## Running tests
-
-```bash
-python -m pytest apps/ tests/ --tb=short --cov=apps --cov=core --cov-report=term-missing
+```env
+DATABASE_URL=your_postgresql_connection_string
+REDIS_URL=redis://redis:6379
+SECRET_KEY=your_django_secret_key
+DEBUG=False
 ```
 
 ---
 
-## Project structure
+## 🌐 API / URL Routes
 
-```
-real-time-collaborative-editor/
-│
-├── apps/
-│   ├── accounts/          # User auth (registration, login, logout)
-│   ├── documents/         # Document CRUD, permissions, revisions
-│   ├── collaboration/     # WebSocket consumer, presence, persistence
-│   └── audit/             # Immutable audit event log
-│
-├── core/                  # Shared middleware, rate limiting, health checks
-├── frontend/              # Templates and static assets
-├── documents/             # Legacy app (preserved for migration continuity)
-├── doc_editor/            # Django project config (settings, URLs, ASGI)
-├── tests/                 # Cross-app integration and security tests
-│
-├── docs/
-│   ├── 01-requirements/   # PRD, SRS, User Stories, Acceptance Criteria
-│   ├── 02-architecture/   # HLD, LLD, System Architecture, ADRs
-│   ├── 03-api/            # REST API, WebSocket Protocol
-│   ├── 04-testing/        # Test Plan
-│   ├── 05-security/       # Security Design
-│   ├── 06-deployment/     # Deployment Guide
-│   └── 07-operations/     # Runbook
-│
-├── .github/workflows/ci.yml   # GitHub Actions CI pipeline
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── requirements-dev.txt
-├── .env.example
-└── manage.py
-```
-
----
-
-## Environment variables
-
-| Variable | Required | Description |
+| URL | View | Description |
 |---|---|---|
-| `SECRET_KEY` | Yes | Django secret key — 50+ random chars |
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `REDIS_URL` | Yes | Redis connection string |
-| `DJANGO_SETTINGS_MODULE` | No | Defaults to `doc_editor.settings.development` |
-| `ALLOWED_HOSTS` | Production | Comma-separated allowed hostnames |
-| `DEBUG` | No | `True` in development; `False` in production |
+| `/` | `home` | Landing page |
+| `/home` | `index` | Generates UUID, redirects to editor |
+| `/<uuid>/` | `room` | Opens the collaborative editor |
+| `/ws/editor/<uuid>/` | WebSocket | Real-time sync channel |
 
 ---
 
-## WebSocket protocol
+## ☁️ Deployment (Render)
 
-Clients communicate via a binary y-websocket protocol over `wss://<host>/ws/documents/<uuid>/`.
+This project is deployed on Render using Docker.
 
-| Message type | Byte | Description |
-|---|---|---|
-| `MSG_SYNC_STEP1` | `0x00` | Client sends state vector |
-| `MSG_SYNC_STEP2` | `0x01` | Server sends full/delta state |
-| `MSG_UPDATE` | `0x02` | Yjs document delta |
-| `MSG_AWARENESS` | `0x03` | Cursor/selection metadata |
-
-See [`docs/03-api/WEBSOCKET_PROTOCOL.md`](docs/03-api/WEBSOCKET_PROTOCOL.md) for full details.
+- Django + Uvicorn runs as a **Web Service**
+- Redis runs as a separate **Redis service** on Render
+- PostgreSQL hosted on **NeonDB**
+- `REDIS_URL` and `DATABASE_URL` set as environment variables in Render dashboard
 
 ---
 
-## Deployment (Render)
+## 👨‍💻 Author
 
-See [`docs/06-deployment/DEPLOYMENT_GUIDE.md`](docs/06-deployment/DEPLOYMENT_GUIDE.md) for the complete step-by-step guide.
-
-**Short version:**
-1. Create Render Web Service connected to this repo
-2. Set all environment variables (`SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`, `DJANGO_SETTINGS_MODULE=doc_editor.settings.production`, `ALLOWED_HOSTS`)
-3. Set pre-deploy command: `python manage.py migrate --noinput`
-4. Set health check path: `/health/`
-5. Push to `main` → automatic deploy
-
----
-
-## Documentation
-
-| Document | Location |
-|---|---|
-| Product Requirements | `docs/01-requirements/PRD.md` |
-| Software Requirements Spec | `docs/01-requirements/SRS.md` |
-| High-Level Design | `docs/02-architecture/HLD.md` |
-| Low-Level Design | `docs/02-architecture/LLD.md` |
-| System Architecture | `docs/02-architecture/SYSTEM_ARCHITECTURE.md` |
-| Database Design | `docs/02-architecture/DATABASE_DESIGN.md` |
-| Sequence Diagrams | `docs/02-architecture/SEQUENCE_DIAGRAMS.md` |
-| REST API | `docs/03-api/REST_API.md` |
-| WebSocket Protocol | `docs/03-api/WEBSOCKET_PROTOCOL.md` |
-| Test Plan | `docs/04-testing/TEST_PLAN.md` |
-| Security Design | `docs/05-security/SECURITY_DESIGN.md` |
-| Deployment Guide | `docs/06-deployment/DEPLOYMENT_GUIDE.md` |
-| Operations Runbook | `docs/07-operations/RUNBOOK.md` |
-
----
-
-## License
-
-MIT
+**Kartik Singh**  
+B.Tech Information Technology — Alliance College of Engineering and Design, Bengaluru  
+GitHub: [github.com/k4rtikx](https://github.com/k4rtikx)  
+LinkedIn: [linkedin.com/in/kartik-singh-3b061b320](https://linkedin.com/in/kartik-singh-3b061b320)

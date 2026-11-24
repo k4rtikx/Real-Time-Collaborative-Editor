@@ -1,3 +1,0 @@
-"""
-Audit app migrations init.
-"""

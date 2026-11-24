@@ -1,3 +1,0 @@
-"""
-Accounts tests init.
-"""
